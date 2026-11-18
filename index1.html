@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Handbook Template Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsPDF@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef } = React;
+    const { jsPDF } = window.jspdf;
+
+    const templates = [
+      {
+        name: "Modern",
+        styles: {
+          background: "bg-blue-100",
+          font: "font-sans",
+          border: "border-2 border-blue-500",
+          textColor: "text-blue-800",
+          fontSize: "text-base",
+        },
+      },
+      {
+        name: "Minimalist",
+        styles: {
+          background: "bg-white",
+          font: "font-serif",
+          border: "border-none",
+          textColor: "text-gray-800",
+          fontSize: "text-lg",
+        },
+      },
+      {
+        name: "Corporate",
+        styles: {
+          background: "bg-gray-100",
+          font: "font-mono",
+          border: "border-2 border-gray-700 shadow-md",
+          textColor: "text-black",
+          fontSize: "text-sm",
+        },
+      },
+    ];
+
+    const App = () => {
+      const [text, setText] = useState("Family Handbook\nCover Page: Our Family\nCore Values: Respect, Unity, Growth");
+      const [selectedTemplate, setSelectedTemplate] = useState(null);
+      const [downloadFormat, setDownloadFormat] = useState("pdf");
+      const previewRefs = useRef([]);
+
+      const handleDownload = async (template) => {
+        const element = previewRefs.current[templates.indexOf(template)];
+        const canvas = await html2canvas(element, { scale: 2 });
+        const imgData = canvas.toDataURL("image/jpeg");
+
+        if (downloadFormat === "pdf") {
+          const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "px",
+            format: [canvas.width, canvas.height],
+          });
+          pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+          pdf.save("family-handbook.pdf");
+        } else {
+          const link = document.createElement("a");
+          link.href = imgData;
+          link.download = "family-handbook.jpeg";
+          link.click();
+        }
+      };
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-2xl font-bold mb-4">Family Handbook Template Generator</h1>
+          <div className="mb-4">
+            <label className="block mb-2">Paste Extracted Text:</label>
+            <textarea
+              className="w-full p-2 border rounded"
+              rows="5"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-2">Download Format:</label>
+            <select
+              className="p-2 border rounded"
+              value={downloadFormat}
+              onChange={(e) => setDownloadFormat(e.target.value)}
+            >
+              <option value="pdf">PDF</option>
+              <option value="jpeg">JPEG</option>
+            </select>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Template Previews</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {templates.map((template, index) => (
+              <div key={template.name} className="border p-4 rounded">
+                <div
+                  ref={(el) => (previewRefs.current[index] = el)}
+                  className={`p-6 ${template.styles.background} ${template.styles.font} ${template.styles.border} ${template.styles.textColor} ${template.styles.fontSize}`}
+                  style={{ width: "300px", height: "400px", overflow: "auto" }}
+                >
+                  <pre className="whitespace-pre-wrap">{text}</pre>
+                </div>
+                <p className="mt-2 font-bold">{template.name}</p>
+                <button
+                  className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    handleDownload(template);
+                  }}
+                >
+                  Select & Download
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>

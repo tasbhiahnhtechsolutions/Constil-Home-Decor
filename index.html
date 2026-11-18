@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Bathroom Renovation Simulator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hidden {
+            display: none;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .hover-scale:hover {
+            transform: scale(1.03);
+            transition: transform 0.3s ease;
+        }
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        .step-card {
+            position: relative;
+        }
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -30px;
+            width: 30px;
+            height: 3px;
+            background: #ddd;
+        }
+        .step-card:last-child::before {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .step-card::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-bath text-indigo-600 text-3xl mr-3"></i>
+                <span class="text-xl font-bold text-gray-800">BathVision AI</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#features" class="text-gray-600 hover:text-indigo-600 transition">Features</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 transition">How It Works</a>
+                <a href="#pricing" class="text-gray-600 hover:text-indigo-600 transition">Pricing</a>
+                <button id="login-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition">Sign In</button>
+                <button id="signup-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition">Sign Up</button>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-btn" class="text-gray-500 hover:text-gray-800 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white px-6 py-4 shadow-inner">
+            <div class="flex flex-col space-y-4">
+                <a href="#features" class="text-gray-600 hover:text-indigo-600 transition">Features</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 transition">How It Works</a>
+                <a href="#pricing" class="text-gray-600 hover:text-indigo-600 transition">Pricing</a>
+                <button id="mobile-login-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition w-full">Sign In</button>
+                <button id="mobile-signup-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition w-full">Sign Up</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Visualize Your Dream Bathroom In Seconds</h1>
+                    <p class="text-lg mb-8 opacity-90">Our AI-powered bathroom renovation simulator creates realistic previews of your new bathroom based on your preferences, dimensions, and budget.</p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button id="try-simulator-btn" class="bg-white text-indigo-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition">Try Simulator</button>
+                        <button class="border border-white text-white hover:bg-white hover:text-indigo-700 font-bold py-3 px-8 rounded-lg text-lg transition">Learn More</button>
+                    </div>
+                </div>
+                <div class="md:w-1/2">
+                    <div class="relative mx-auto w-full max-w-md rounded-xl bg-white p-2 shadow-xl">
+                        <img src="https://cdn.jsdelivr.net/gh/tempux/imghost@main/bathroom-demo.jpg" alt="Bathroom Renovation Preview" class="w-full h-auto rounded-lg">
+                        <div class="absolute top-4 left-4 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">AI Generated</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Transform Your Bathroom with AI</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Discover the power of artificial intelligence in home renovation planning with our intuitive and accurate simulator.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="feature-card bg-white rounded-xl p-6 shadow-lg hover-scale">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-bolt text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Instant Visualization</h3>
+                    <p class="text-gray-600">See your new bathroom in under a minute. No waiting for designers or contractors.</p>
+                </div>
+                <div class="feature-card bg-white rounded-xl p-6 shadow-lg hover-scale">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-sliders-h text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Customizable Options</h3>
+                    <p class="text-gray-600">Adjust dimensions, style, and budget to create your perfect bathroom design.</p>
+                </div>
+                <div class="feature-card bg-white rounded-xl p-6 shadow-lg hover-scale">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-wallet text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Budget Friendly</h3>
+                    <p class="text-gray-600">Know what to expect with designs that match your specified budget range.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="how-it-works" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">How It Works</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Our simple three-step process makes visualizing your bathroom renovation effortless.</p>
+            </div>
+            <div class="flex flex-col md:flex-row space-y-10 md:space-y-0 md:space-x-10 justify-between">
+                <div class="step-card bg-white rounded-xl p-8 shadow-lg text-center md:w-1/3">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-indigo-600 text-2xl font-bold">1</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Input Your Details</h3>
+                    <p class="text-gray-600">Enter your bathroom dimensions, style preferences, and budget constraints in our simple form.</p>
+                </div>
+                <div class="step-card bg-white rounded-xl p-8 shadow-lg text-center md:w-1/3">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-indigo-600 text-2xl font-bold">2</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">AI Processing</h3>
+                    <p class="text-gray-600">Our advanced AI analyzes your requirements and generates a realistic bathroom visualization.</p>
+                </div>
+                <div class="step-card bg-white rounded-xl p-8 shadow-lg text-center md:w-1/3">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <span class="text-indigo-600 text-2xl font-bold">3</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Get Your Design</h3>
+                    <p class="text-gray-600">View, download, and share your new bathroom design. You can make unlimited adjustments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Simple, Transparent Pricing</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Choose the plan that works best for your renovation planning needs.</p>
+            </div>
+            <div class="flex flex-col md:flex-row space-y-10 md:space-y-0 md:space-x-6 justify-center">
+                <div class="bg-white rounded-xl border border-gray-200 p-8 shadow-lg md:w-1/3 hover-scale">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Free Trial</h3>
+                    <p class="text-gray-600 mb-6">Perfect for exploring the tool's capabilities.</p>
+                    <div class="text-4xl font-bold text-gray-800 mb-6">$0</div>
+                    <ul class="text-gray-600 mb-8 space-y-3">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> 3 AI-generated designs</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Basic customization options</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Standard resolution images</li>
+                        <li class="flex items-center opacity-50"><i class="fas fa-times text-red-500 mr-3"></i> No downloads</li>
+                    </ul>
+                    <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg transition">Start Free Trial</button>
+                </div>
+                <div class="bg-indigo-50 rounded-xl border border-indigo-100 p-8 shadow-lg md:w-1/3 hover-scale relative">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-tl-none rounded-tr-lg rounded-bl-none rounded-br-none">POPULAR</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Premium</h3>
+                    <p class="text-gray-600 mb-6">For homeowners planning their renovation.</p>
+                    <div class="text-4xl font-bold text-gray-800 mb-6">$29<span class="text-lg font-normal">/month</span></div>
+                    <ul class="text-gray-600 mb-8 space-y-3">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Unlimited designs</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> All customization options</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> High-resolution images</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Download and share designs</li>
+                    </ul>
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition">Get Premium</button>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-200 p-8 shadow-lg md:w-1/3 hover-scale">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Professional</h3>
+                    <p class="text-gray-600 mb-6">For contractors and design professionals.</p>
+                    <div class="text-4xl font-bold text-gray-800 mb-6">$99<span class="text-lg font-normal">/month</span></div>
+                    <ul class="text-gray-600 mb-8 space-y-3">
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Everything in Premium</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Client management portal</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> Material cost estimates</li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i> White label options</li>
+                    </ul>
+                    <button class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg transition">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">What Our Users Say</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Hear from homeowners who have transformed their bathrooms with our AI simulator.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="mr-4">
+                            <img src="https://cdn.jsdelivr.net/gh/tempux/imghost@main/user1.jpg" alt="User" class="w-12 h-12 rounded-full">
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800">Sarah Johnson</h4>
+                            <p class="text-gray-600">Homeowner</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">"The bathroom simulator saved me countless hours of back-and-forth with contractors. I could see exactly what I wanted before committing to any work."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="mr-4">
+                            <img src="https://cdn.jsdelivr.net/gh/tempux/imghost@main/user2.jpg" alt="User" class="w-12 h-12 rounded-full">
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800">Michael Rodriguez</h4>
+                            <p class="text-gray-600">Interior Designer</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">"As a professional designer, this tool helps me show clients multiple options quickly. The AI generates ideas I might not have considered."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="mr-4">
+                            <img src="https://cdn.jsdelivr.net/gh/tempux/imghost@main/user3.jpg" alt="User" class="w-12 h-12 rounded-full">
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800">Jennifer Lee</h4>
+                            <p class="text-gray-600">Contractor</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">"The level of detail in these AI-generated bathrooms is impressive. My clients can make informed decisions faster, which streamlines my workflow."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sign In Modal -->
+    <div id="signin-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full relative">
+            <button id="close-signin" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Sign In</h3>
+            <form id="signin-form">
+                <div class="mb-4">
+                    <label for="signin-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="signin-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="signin-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="signin-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition mb-4">Sign In</button>
+                <div class="text-center text-gray-600">
+                    <p>Don't have an account? <a href="#" id="show-signup" class="text-indigo-600 hover:underline">Sign Up</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signup-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full relative">
+            <button id="close-signup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Create Account</h3>
+            <form id="signup-form">
+                <div class="mb-4">
+                    <label for="signup-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                    <input type="text" id="signup-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="signup-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="signup-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="signup-phone" class="block text-gray-700 font-medium mb-2">Phone Number</label>
+                    <input type="tel" id="signup-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="signup-address" class="block text-gray-700 font-medium mb-2">Address</label>
+                    <input type="text" id="signup-address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="signup-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="signup-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition mb-4">Sign Up</button>
+                <div class="text-center text-gray-600">
+                    <p>Already have an account? <a href="#" id="show-signin" class="text-indigo-600 hover:underline">Sign In</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bathroom Simulator -->
+    <div id="simulator-section" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Bathroom Renovation Simulator</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Enter your bathroom details below to generate your custom design.</p>
+            </div>
+            <div class="flex flex-col lg:flex-row space-y-12 lg:space-y-0 lg:space-x-12">
+                <div class="lg:w-1/2">
+                    <div class="bg-white rounded-xl border border-gray-200 p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Your Bathroom Details</h3>
+                        <form id="simulator-form">
+                            <div class="mb-6">
+                                <label for="dimensions" class="block text-gray-700 font-medium mb-2">Bathroom Dimensions</label>
+                                <select id="dimensions" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <optgroup label="Small">
+                                        <option value="3x5">3 x 5 ft (15 sq ft)</option>
+                                        <option value="4x6">4 x 6 ft (24 sq ft)</option>
+                                        <option value="5x7">5 x 7 ft (35 sq ft)</option>
+                                    </optgroup>
+                                    <optgroup label="Medium">
+                                        <option value="5x8" selected>5 x 8 ft (40 sq ft)</option>
+                                        <option value="6x9">6 x 9 ft (54 sq ft)</option>
+                                        <option value="7x10">7 x 10 ft (70 sq ft)</option>
+                                    </optgroup>
+                                    <optgroup label="Large">
+                                        <option value="8x12">8 x 12 ft (96 sq ft)</option>
+                                        <option value="10x10">10 x 10 ft (100 sq ft)</option>
+                                        <option value="12x15">12 x 15 ft (180 sq ft)</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div id="custom-dimensions" class="mb-6 hidden">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="custom-width" class="block text-gray-700 font-medium mb-2">Width (ft)</label>
+                                        <input type="number" id="custom-width" min="3" max="20" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label for="custom-length" class="block text-gray-700 font-medium mb-2">Length (ft)</label>
+                                        <input type="number" id="custom-length" min="3" max="20" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label class="flex items-center text-gray-700 font-medium">
+                                    <input type="checkbox" id="custom-dimension-toggle" class="mr-2">
+                                    Use custom dimensions
+                                </label>
+                            </div>
+                            <div class="mb-6">
+                                <label for="style" class="block text-gray-700 font-medium mb-2">Style Preference</label>
+                                <select id="style" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="modern" selected>Modern</option>
+                                    <option value="minimalist">Minimalist</option>
+                                    <option value="traditional">Traditional</option>
+                                    <option value="contemporary">Contemporary</option>
+                                    <option value="industrial">Industrial</option>
+                                    <option value="rustic">Rustic</option>
+                                    <option value="scandinavian">Scandinavian</option>
+                                    <option value="bohemian">Bohemian (Boho)</option>
+                                    <option value="luxury">Luxury</option>
+                                    <option value="transitional">Transitional</option>
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="shape" class="block text-gray-700 font-medium mb-2">Bathroom Shape</label>
+                                <select id="shape" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="rectangular" selected>Rectangular</option>
+                                    <option value="square">Square</option>
+                                    <option value="l-shaped">L-Shaped</option>
+                                    <option value="narrow">Narrow (galley-style)</option>
+                                    <option value="irregular">Irregular (angled walls)</option>
+                                    <option value="open">Open (wet room)</option>
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="budget" class="block text-gray-700 font-medium mb-2">Budget Range</label>
+                                <select id="budget" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="under-1000">Under $1,000</option>
+                                    <option value="1000-5000" selected>$1,000 - $5,000</option>
+                                    <option value="5000-10000">$5,000 - $10,000</option>
+                                    <option value="10000-20000">$10,000 - $20,000</option>
+                                    <option value="20000+">$20,000+</option>
+                                </select>
+                            </div>
+                            <div id="custom-budget" class="mb-6 hidden">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="budget-min" class="block text-gray-700 font-medium mb-2">Min ($)</label>
+                                        <input type="number" id="budget-min" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label for="budget-max" class="block text-gray-700 font-medium mb-2">Max ($)</label>
+                                        <input type="number" id="budget-max" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label class="flex items-center text-gray-700 font-medium">
+                                    <input type="checkbox" id="custom-budget-toggle" class="mr-2">
+                                    Use custom budget range
+                                </label>
+                            </div>
+                            <div class="mb-6">
+                                <label for="additional-notes" class="block text-gray-700 font-medium mb-2">Additional Notes (Optional)</label>
+                                <textarea id="additional-notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Any specific features or elements you'd like to include..."></textarea>
+                            </div>
+                            <button type="submit" id="generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition">Generate Bathroom Design</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:w-1/2">
+                    <div id="result-container" class="bg-white rounded-xl border border-gray-200 p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Your Bathroom Visualization</h3>
+                        <div id="loading-indicator" class="hidden">
+                            <div class="flex flex-col items-center justify-center py-12">
+                                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+                                <p class="text-gray-600">Generating your bathroom design...</p>
+                            </div>
+                        </div>
+                        <div id="result-placeholder" class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                            <i class="fas fa-bath text-gray-400 text-5xl mb-4"></i>
+                            <p class="text-gray-600 text-center">Your bathroom visualization will appear here after you submit the form.</p>
+                        </div>
+                        <div id="result-image" class="hidden">
+                            <img id="bathroom-image" src="" alt="Generated Bathroom Design" class="w-full h-auto rounded-lg mb-6">
+                            <div class="flex justify-between">
+                                <button id="download-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center">
+                                    <i class="fas fa-download mr-2"></i> Download
+                                </button>
+                                <button id="regenerate-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg transition flex items-center">
+                                    <i class="fas fa-sync-alt mr-2"></i> Regenerate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="design-specs" class="hidden mt-8 bg-white rounded-xl border border-gray-200 p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Design Specifications</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-gray-700">Dimensions</h4>
+                                <p id="spec-dimensions" class="text-gray-600">5 x 8 ft (40 sq ft)</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-700">Style</h4>
+                                <p id="spec-style" class="text-gray-600">Modern</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-700">Estimated Cost</h4>
+                                <p id="spec-cost" class="text-gray-600">$3,500 - $4,800</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-700">Features</h4>
+                                <ul id="spec-features" class="text-gray-600 list-disc pl-5">
+                                    <li>Glass shower enclosure</li>
+                                    <li>Floating vanity with vessel sink</li>
+                                    <li>Porcelain floor tiles</li>
+                                    <li>LED recessed lighting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div class="md:col-span-1">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-bath text-indigo-400 text-3xl mr-3"></i>
+                        <span class="text-xl font-bold">BathVision AI</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">Transform your bathroom with the power of artificial intelligence.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
+                        <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition">How It Works</a></li>
+                        <li><a href="#pricing" class="text-gray-400 hover:text-white transition">Pricing</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Design Tips</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Material Guide</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Contractor Network</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-indigo-400 mt-1 mr-3"></i>
+                            <span class="text-gray-400">123 Design Street, San Francisco, CA 94107</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope text-indigo-400 mr-3"></i>
+                            <a href="mailto:info@bathvisionai.com" class="text-gray-400 hover:text-white transition">info@bathvisionai.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone text-indigo-400 mr-3"></i>
+                            <a href="tel:+14155552671" class="text-gray-400 hover:text-white transition">(415) 555-2671</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">© 2023 BathVision AI. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- Main JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Modal functionality
+        const signinModal = document.getElementById('signin-modal');
+        const signupModal = document.getElementById('signup-modal');
+
+        // Open modals
+        document.getElementById('login-btn').addEventListener('click', function() {
+            signinModal.classList.remove('hidden');
+        });
+
+        document.getElementById('signup-btn').addEventListener('click', function() {
+            signupModal.classList.remove('hidden');
+        });
+
+        document.getElementById('mobile-login-btn').addEventListener('click', function() {
+            signinModal.classList.remove('hidden');
+            document.getElementById('mobile-menu').classList.add('hidden');
+        });
+
+        document.getElementById('mobile-signup-btn').addEventListener('click', function() {
+            signupModal.classList.remove('hidden');
+            document.getElementById('mobile-menu').classList.add('hidden');
+        });
+
+        // Close modals
+        document.getElementById('close-signin').addEventListener('click', function() {
+            signinModal.classList.add('hidden');
+        });
+
+        document.getElementById('close-signup').addEventListener('click', function() {
+            signupModal.classList.add('hidden');
+        });
+
+        // Switch between modals
+        document.getElementById('show-signup').addEventListener('click', function(e) {
+            e.preventDefault();
+            signinModal.classList.add('hidden');
+            signupModal.classList.remove('hidden');
+        });
+
+        document.getElementById('show-signin').addEventListener('click', function(e) {
+            e.preventDefault();
+            signupModal.classList.add('hidden');
+            signinModal.classList.remove('hidden');
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === signinModal) {
+                signinModal.classList.add('hidden');
+            }
+            if (e.target === signupModal) {
+                signupModal.classList.add('hidden');
+            }
+        });
+
+        // Form submissions
+        document.getElementById('signin-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Simulate sign in
+            alert('Sign in successful! (Demo only)');
+            signinModal.classList.add('hidden');
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Collect form data
+            const userData = {
+                name: document.getElementById('signup-name').value,
+                email: document.getElementById('signup-email').value,
+                phone: document.getElementById('signup-phone').value,
+                address: document.getElementById('signup-address').value,
+                password: document.getElementById('signup-password').value
+            };
+            
+            // In a real application, you would send this to your server
+            console.log('User signup data:', userData);
+            
+            alert('Account created successfully! (Demo only)');
+            signupModal.classList.add('hidden');
+        });
+
+        // Custom dimensions toggle
+        document.getElementById('custom-dimension-toggle').addEventListener('change', function() {
+            const customDimensions = document.getElementById('custom-dimensions');
+            if (this.checked) {
+                customDimensions.classList.remove('hidden');
+            } else {
+                customDimensions.classList.add('hidden');
+            }
+        });
+
+        // Custom budget toggle
+        document.getElementById('custom-budget-toggle').addEventListener('change', function() {
+            const customBudget = document.getElementById('custom-budget');
+            if (this.checked) {
+                customBudget.classList.remove('hidden');
+            } else {
+                customBudget.classList.add('hidden');
+            }
+        });
+
+        // Simulator form submission
+        document.getElementById('simulator-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading indicator
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            document.getElementById('result-placeholder').classList.add('hidden');
+            
+            // Simulate API call delay
+            setTimeout(function() {
+                // Hide loading indicator
+                document.getElementById('loading-indicator').classList.add('hidden');
+                
+                // Show result image (for demo purposes using a placeholder)
+                document.getElementById('result-image').classList.remove('hidden');
+                document.getElementById('bathroom-image').src = 'https://cdn.jsdelivr.net/gh/tempux/imghost@main/bathroom-result.jpg';
+                
+                // Show design specs
+                document.getElementById('design-specs').classList.remove('hidden');
+                
+                // Update specs based on form inputs
+                updateDesignSpecs();
+            }, 3000);
+        });
+
+        // Update design specifications
+        function updateDesignSpecs() {
+            const dimensionsSelect = document.getElementById('dimensions');
+            const styleSelect = document.getElementById('style');
+            const budgetSelect = document.getElementById('budget');
+            
+            // Update dimension display
+            document.getElementById('spec-dimensions').textContent = dimensionsSelect.options[dimensionsSelect.selectedIndex].text;
+            
+            // Update style display
+            document.getElementById('spec-style').textContent = styleSelect.options[styleSelect.selectedIndex].text;
+            
+            // Generate random cost within budget range
+            let costRange;
+            switch(budgetSelect.value) {
+                case 'under-1000':
+                    costRange = '$' + Math.floor(Math.random() * 500 + 500) + ' - $950';
+                    break;
+                case '1000-5000':
+                    costRange = '$' + Math.floor(Math.random() * 2000 + 1000) + ' - $' + Math.floor(Math.random() * 1000 + 4000);
+                    break;
+                case '5000-10000':
+                    costRange = '$' + Math.floor(Math.random() * 2000 + 5000) + ' - $' + Math.floor(Math.random() * 2000 + 8000);
+                    break;
+                case '10000-20000':
+                    costRange = '$' + Math.floor(Math.random() * 5000 + 10000) + ' - $' + Math.floor(Math.random() * 5000 + 15000);
+                    break;
+                case '20000+':
+                    costRange = '$' + Math.floor(Math.random() * 10000 + 20000) + ' - $' + Math.floor(Math.random() * 15000 + 25000);
+                    break;
+            }
+            document.getElementById('spec-cost').textContent = costRange;
+            
+            // Update features based on style
+            const styleFeaturesMap = {
+                'modern': ['Glass shower enclosure', 'Floating vanity with vessel sink', 'Porcelain floor tiles', 'LED recessed lighting'],
+                'minimalist': ['Walk-in shower', 'Wall-mounted toilet', 'Simple vanity with integrated sink', 'Neutral color palette'],
+                'traditional': ['Clawfoot tub', 'Ornate vanity with marble top', 'Subway tile walls', 'Classic fixtures'],
+                'contemporary': ['Freestanding soaking tub', 'Double vanity with quartz countertop', 'Large format tiles', 'Smart mirrors'],
+                'industrial': ['Concrete floors', 'Metal accents', 'Exposed pipe fixtures', 'Statement lighting'],
+                'rustic': ['Wood elements', 'Stone accents', 'Copper fixtures', 'Vintage accessories'],
+                'scandinavian': ['White color palette', 'Wood accents', 'Simple fixtures', 'Functional storage'],
+                'bohemian': ['Bold patterns', 'Plant elements', 'Unique fixtures', 'Vibrant colors'],
+                'luxury': ['Marble surfaces', 'Gold fixtures', 'Chandelier lighting', 'Heated floors'],
+                'transitional': ['Blend of modern and traditional elements', 'Quartz countertops', 'Neutral palette with accents', 'Classic with modern touches']
+            };
+            
+            const featuresList = document.getElementById('spec-features');
+            featuresList.innerHTML = '';
+            
+            const selectedStyle = styleSelect.value;
+            const features = styleFeaturesMap[selectedStyle] || styleFeaturesMap['modern'];
+            
+            features.forEach(feature => {
+                const li = document.createElement('li');
+                li.textContent = feature;
+                featuresList.appendChild(li);
+            });
+        }
+
+        // Download button functionality
+        document.getElementById('download-btn').addEventListener('click', function() {
+            alert('In a real implementation, this would download the image. Feature simulated for demo purposes.');
+        });
+
+        // Regenerate button functionality
+        document.getElementById('regenerate-btn').addEventListener('click', function() {
+            // Show loading indicator
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            document.getElementById('result-image').classList.add('hidden');
+            
+            // Simulate API call delay
+            setTimeout(function() {
+                // Hide loading indicator
+                document.getElementById('loading-indicator').classList.add('hidden');
+                
+                // Show result image (in a real app, this would be a new image)
+                document.getElementById('result-image').classList.remove('hidden');
+                // For demo purposes, we'll just use the same image
+                
+                // Update design specs with slightly different values
+                updateDesignSpecs();
+            }, 2000);
+        });
+
+        // Try simulator button
+        document.getElementById('try-simulator-btn').addEventListener('click', function() {
+            document.getElementById('simulator-section').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
