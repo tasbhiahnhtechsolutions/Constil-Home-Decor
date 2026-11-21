@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { callRemodel } from "./api";
 import {
   BUDGET_OPTIONS,
@@ -321,21 +322,29 @@ export default function PhotoFlow({ onPhotoCount }) {
 }
 
 export function Lightbox({ src, alt, onClose, extra }) {
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     function onKey(event) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") closeRef.current();
     }
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  return (
-    <div className="lightbox" role="dialog" aria-modal="true" aria-label={alt || "Full image"} onClick={onClose}>
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+  return createPortal(
+    <div className="lightbox" role="dialog" aria-modal="true" aria-label={alt || "Full image"} onClick={() => closeRef.current()}>
       <div className="lightbox-bar" onClick={(event) => event.stopPropagation()}>
         {extra}
-        <button type="button" className="btn ghost light" onClick={onClose}>Close</button>
+        <button type="button" className="btn ghost light" onClick={() => closeRef.current()}>Close</button>
       </div>
       <img src={src} alt={alt || ""} onClick={(event) => event.stopPropagation()} />
-    </div>
+    </div>,
+    document.body,
   );
 }
 
