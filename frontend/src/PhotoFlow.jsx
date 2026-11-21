@@ -318,24 +318,71 @@ export function Generating() {
   );
 }
 
-function Estimate({ estimate, higherBudgets, onRaiseBudget }) {
+function moneyRange(low, high) {
+  return `$${Number(low).toLocaleString()}–$${Number(high).toLocaleString()}`;
+}
+
+function lineFormula(item) {
+  const rate = item.unitLow === item.unitHigh
+    ? `$${item.unitLow.toLocaleString()}`
+    : `$${item.unitLow.toLocaleString()}–$${item.unitHigh.toLocaleString()}`;
+  return `${item.qty} ${item.unit} × ${rate}`;
+}
+
+function EstimateGroup({ title, items, low, high, totalHigh }) {
+  if (!items.length) return null;
   return (
-    <div>
-      <h3>Planning estimate</h3>
-      <p className="muted">{estimate.disclaimer}</p>
-      {estimate.notes.map((note) => <p key={note}>{note}</p>)}
-      <div className="bars">
-        {estimate.items.map((item) => (
-          <div className="bar-row" key={item.name}>
-            <span>{item.name}</span>
-            <div className="track"><i style={{ width: `${Math.max(8, (item.high / estimate.totalHigh) * 100)}%` }} /></div>
-            <span>${item.low.toLocaleString()} – ${item.high.toLocaleString()}</span>
+    <section className="quote-group">
+      <header>
+        <h4>{title}</h4>
+        <strong>{moneyRange(low, high)}</strong>
+      </header>
+      {items.map((item) => (
+        <article className="quote-line" key={`${item.group}-${item.name}`}>
+          <div className="quote-line-top">
+            <div>
+              <strong>{item.name}</strong>
+              <span>{lineFormula(item)}</span>
+            </div>
+            <b>{moneyRange(item.low, item.high)}</b>
           </div>
-        ))}
-      </div>
-      <p><strong>Total: ${estimate.totalLow.toLocaleString()} – ${estimate.totalHigh.toLocaleString()}</strong></p>
-      {estimate.budgetNote && (
+          {item.detail && <p>{item.detail}</p>}
+          <div className="track"><i style={{ width: `${Math.max(6, (item.high / totalHigh) * 100)}%` }} /></div>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+export function Estimate({ estimate, higherBudgets, onRaiseBudget }) {
+  const materials = estimate.items.filter((item) => item.group === "Materials");
+  const labor = estimate.items.filter((item) => item.group === "Labor");
+  return (
+    <div className="quote">
+      <div className="quote-hero">
         <div>
+          <p className="eyebrow">Planning estimate</p>
+          <p className="quote-total">{moneyRange(estimate.totalLow, estimate.totalHigh)}</p>
+          <p className="muted">{estimate.disclaimer}</p>
+        </div>
+        <div className="quote-split">
+          <div>
+            <span>Materials</span>
+            <strong>{moneyRange(estimate.materialLow, estimate.materialHigh)}</strong>
+          </div>
+          <div>
+            <span>Labor</span>
+            <strong>{moneyRange(estimate.laborLow, estimate.laborHigh)}</strong>
+          </div>
+        </div>
+      </div>
+      <ul className="quote-notes">
+        {estimate.notes.map((note) => <li key={note}>{note}</li>)}
+      </ul>
+      <EstimateGroup title="Materials" items={materials} low={estimate.materialLow} high={estimate.materialHigh} totalHigh={estimate.totalHigh} />
+      <EstimateGroup title="Labor" items={labor} low={estimate.laborLow} high={estimate.laborHigh} totalHigh={estimate.totalHigh} />
+      {estimate.budgetNote && (
+        <div className="quote-budget">
           <p className="warn">{estimate.budgetNote}</p>
           {higherBudgets.length > 0 && (
             <div className="chip-grid">

@@ -1,7 +1,16 @@
 import { useMemo, useRef, useState } from "react";
 import { callRemodel } from "./api";
-import { Generating } from "./PhotoFlow";
-import { BATH_PRESETS, BATH_ROOMS, HOME_PRESETS, HOME_ROOMS, ROOM_FORM_CHOICES, manualPrompt, parseBudget } from "./logic";
+import { Estimate, Generating } from "./PhotoFlow";
+import { BATH_PRESETS, BATH_ROOMS, HOME_PRESETS, HOME_ROOMS, ROOM_FORM_CHOICES, manualEstimate, manualPrompt, parseBudget } from "./logic";
+
+const MANUAL_BUDGETS = ["Under $1,000", "$1,000 - $5,000", "$5,000 - $10,000", "$10,000 - $20,000", "$20,000+"];
+const MANUAL_BUDGET_VALUE = {
+  "Under $1,000": 1000,
+  "$1,000 - $5,000": 3000,
+  "$5,000 - $10,000": 7500,
+  "$10,000 - $20,000": 15000,
+  "$20,000+": 25000,
+};
 
 export default function ManualForm() {
   const [category, setCategory] = useState("home");
@@ -30,6 +39,23 @@ export default function ManualForm() {
   const paletteValue = safe.palettes.includes(palette) ? palette : safe.palettes[0];
   const featureValue = safe.features.includes(feature) ? feature : safe.features[0];
   const layoutValue = safe.layouts?.includes(layout) ? layout : safe.layouts?.[0];
+  const [length, width] = size === "Custom Range"
+    ? [Number(custom.length), Number(custom.width)]
+    : String(preset).split("x").map(Number);
+  const height = Number(custom.height);
+  const budget = budgetOption === "Custom" ? Number(customBudget) : (MANUAL_BUDGET_VALUE[budgetOption] ?? parseBudget(budgetOption));
+  const estimate = length > 0 && width > 0 && height > 0
+    ? manualEstimate({
+      category,
+      roomType: activeRoom,
+      length,
+      width,
+      height,
+      feature: featureValue,
+      palette: paletteValue,
+      budget,
+    })
+    : null;
 
   function switchCategory(next) {
     const nextRooms = next === "home" ? HOME_ROOMS : BATH_ROOMS;
@@ -58,11 +84,6 @@ export default function ManualForm() {
   async function generate(event) {
     event.preventDefault();
     const id = ++requestId.current;
-    const [length, width] = size === "Custom Range"
-      ? [Number(custom.length), Number(custom.width)]
-      : preset.split("x").map(Number);
-    const height = Number(custom.height);
-    const budget = budgetOption === "Custom" ? Number(customBudget) : parseBudget(budgetOption);
     setBusy(true);
     setError("");
     setImageUrl("");
@@ -144,6 +165,13 @@ export default function ManualForm() {
             Notes
             <textarea rows="3" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Specific materials, colors, or fixtures" />
           </label>
+          {estimate && (
+            <Estimate
+              estimate={estimate}
+              onRaiseBudget={setBudgetOption}
+              higherBudgets={MANUAL_BUDGETS.filter((option) => MANUAL_BUDGET_VALUE[option] > budget)}
+            />
+          )}
           <button className="btn clay" style={{ marginTop: 16 }} disabled={busy}>
             {busy ? "Generating the design..." : "Generate interior design"}
           </button>

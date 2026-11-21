@@ -13,6 +13,15 @@ Schema:
 {
   "room_type": "bathroom" or "kitchen" or "unknown",
   "fixtures": ["short names of visible fixtures"],
+  "visible": {
+    "tub": false,
+    "shower": false,
+    "vanity": false,
+    "tile": false,
+    "cabinets": false,
+    "countertop": false,
+    "appliances": false
+  },
   "condition": "one sentence on what the room looks like today",
   "length_ft": number or null,
   "width_ft": number or null,
@@ -32,6 +41,7 @@ Rules:
 - If you can only support a range, fill the low and high fields and set the single value to null.
 - confidence is high only when a clear reference and most of the floor are visible.
 - fixtures must be visible in the photo. Do not list implied fixtures that are not shown.
+- Set a visible flag to true only when that thing is actually in the frame. A bathtub is not a shower. Cabinets are not a countertop. Tile means tile you can see, not painted drywall.
 `.trim();
 
 function json(body: unknown, status = 200) {

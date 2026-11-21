@@ -308,10 +308,93 @@ img { max-width: 100%; }
 .compare em.after { right: 14px; }
 .compare em.before-label { left: 14px; }
 
-.bars { margin-top: 8px; display: grid; gap: 8px; }
-.bar-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
-.track { height: 8px; border-radius: 99px; background: rgba(34,25,16,0.08); overflow: hidden; }
+.quote {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  overflow: hidden;
+}
+.quote-hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+  padding: 22px 22px 16px;
+  background: linear-gradient(180deg, #f7faff 0%, #fff 100%);
+}
+.quote .eyebrow { margin: 0; }
+.quote-total {
+  margin: 6px 0 8px;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.quote-split { display: grid; gap: 8px; align-content: center; }
+.quote-split div {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.quote-split span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5c6b7a;
+}
+.quote-split strong { display: block; margin-top: 4px; font-size: 15px; }
+.quote-notes {
+  margin: 0;
+  padding: 0 22px 8px;
+  list-style: none;
+  color: #5c6b7a;
+  font-size: 13px;
+}
+.quote-notes li { margin: 0 0 4px; }
+.quote-group { padding: 8px 14px 14px; }
+.quote-group header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 8px 4px;
+}
+.quote-group h4 {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.quote-group header strong { font-size: 14px; }
+.quote-line {
+  margin-top: 8px;
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  background: var(--sand);
+}
+.quote-line-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.quote-line-top strong { display: block; font-size: 15px; }
+.quote-line-top span { display: block; margin-top: 2px; color: #5c6b7a; font-size: 13px; }
+.quote-line-top b { white-space: nowrap; font-size: 14px; }
+.quote-line p { margin: 6px 0 8px; color: #6d6258; font-size: 13px; }
+.track { height: 6px; border-radius: 99px; background: rgba(15, 23, 42, 0.08); overflow: hidden; }
 .track i { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.quote-budget {
+  margin: 4px 14px 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff8ee;
+  border: 1px solid rgba(168, 112, 24, 0.22);
+}
+.quote-budget .warn { margin: 0; }
 
 .room-grid, .look-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
 .tile {
@@ -466,7 +549,7 @@ body:has(.gate) {
   .split { grid-template-columns: 1fr; }
   .mood { position: static; }
   .dims { grid-template-columns: 1fr; }
-  .bar-row { grid-template-columns: 1fr; }
+  .quote-hero, .quote-split { grid-template-columns: 1fr; }
   .compare img, .compare { height: auto; }
   .compare img { height: 280px; }
   .doors, .facts { grid-template-columns: 1fr; }

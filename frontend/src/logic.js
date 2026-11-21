@@ -152,82 +152,215 @@ function applyTier(low, high, budget) {
   return [lo, hi];
 }
 
-function addLine(items, name, low, high, budget) {
-  const [tierLow, tierHigh] = applyTier(low, high, budget);
-  items.push({ name, low: money(tierLow), high: money(Math.max(tierHigh, tierLow)) });
+function roundQty(qty, unit) {
+  const value = Number(qty) || 0;
+  if (value <= 0) return 0;
+  if (unit === "each") return Math.round(value);
+  if (unit === "hours") return Math.round(value * 2) / 2;
+  if (unit === "sq ft") return Math.round(value);
+  return Math.round(value * 10) / 10;
+}
+
+function addPriced(items, { group, name, qty, unit, unitLow, unitHigh, budget, detail }) {
+  const amount = roundQty(qty, unit);
+  if (amount <= 0) return;
+  const [tierLow, tierHigh] = applyTier(unitLow, unitHigh, budget);
+  const lowRate = Math.round(tierLow);
+  const highRate = Math.max(lowRate, Math.round(tierHigh));
+  if (lowRate === 0 && highRate === 0) return;
+  items.push({
+    group,
+    name,
+    qty: amount,
+    unit,
+    unitLow: lowRate,
+    unitHigh: highRate,
+    low: money(lowRate * amount),
+    high: money(highRate * amount),
+    detail,
+  });
+}
+
+function sumItems(items, key) {
+  return items.reduce((sum, item) => sum + item[key], 0);
+}
+
+function homeFeatureRate(feature) {
+  const text = feature.toLowerCase();
+  if (text.includes("fireplace") || text.includes("fire feature")) return [1800, 7000];
+  if (text.includes("wardrobe") || text.includes("bookshelf") || text.includes("built-in") || text.includes("media")) return [900, 4500];
+  if (text.includes("island") || text.includes("pergola") || text.includes("shade")) return [800, 4000];
+  if (text.includes("sofa") || text.includes("bed") || text.includes("dining")) return [600, 3200];
+  if (text.includes("chandelier") || text.includes("pendant") || text.includes("lighting")) return [200, 1400];
+  if (text.includes("mural") || text.includes("wallpaper") || text.includes("accent") || text.includes("mirror")) return [250, 1200];
+  return [400, 2000];
 }
 
 export function buildEstimate(room, length, width, height, answers, budget) {
   const sqft = length * width;
   const scope = parseScope(answers.scope);
+  const full = scope === "full";
   const items = [];
   const notes = [
     `${length} × ${width} ft (${Math.round(sqft)} sq ft) with a ${height} ft ceiling.`,
-    scope === "full" ? "Full replacement" : "Light refresh",
+    full ? "Full replacement" : "Light refresh",
   ];
 
   if (room === "kitchen") {
     const linearFt = Math.max(6, (length + width) * 1.1);
-    notes.push(`Cabinet and counter runs are estimated at about ${Math.round(linearFt)} linear ft from the footprint, not a measured layout.`);
-    const demo = scope === "full" ? [5 * sqft, 10 * sqft] : [2 * sqft, 5 * sqft];
-    const floor = scope === "full" ? [8 * sqft, 16 * sqft] : [4 * sqft, 10 * sqft];
+    const splashSqft = linearFt * 1.5;
     const cabinets = String(answers.cabinets || "").toLowerCase();
-    const cabinetRate = cabinets.includes("keep") ? [15, 40] : cabinets.includes("reface") ? [80, 180] : scope === "full" ? [150, 400] : [120, 280];
     const counter = String(answers.countertop || "").toLowerCase();
-    const counterRate = counter.includes("keep") ? [0, 20]
-      : counter.includes("butcher") ? [25, 60]
-      : counter.includes("marble") ? [70, 140]
-      : counter.includes("granite") ? [40, 85]
-      : [45, 95];
-    const appliances = scope === "full" ? [1500, 5500] : [0, 900];
-    addLine(items, "Demolition and prep", demo[0], demo[1], budget);
-    addLine(items, "Cabinets", cabinetRate[0] * linearFt, cabinetRate[1] * linearFt, budget);
-    addLine(items, "Countertop", counterRate[0] * linearFt, counterRate[1] * linearFt, budget);
-    addLine(items, "Flooring", floor[0], floor[1], budget);
-    addLine(items, "Appliances allowance", appliances[0], appliances[1], budget);
+    const keepingCabs = cabinets.includes("keep");
+    const refacing = cabinets.includes("reface");
+    const keepingTop = counter.includes("keep");
+    const cabinetRate = keepingCabs ? [10, 25] : refacing ? [50, 120] : full ? [95, 240] : [75, 170];
+    const cabinetHours = keepingCabs ? 0.2 : refacing ? 0.9 : full ? 1.8 : 1.2;
+    const counterRate = keepingTop ? [0, 12]
+      : counter.includes("butcher") ? [18, 40]
+      : counter.includes("marble") ? [50, 100]
+      : counter.includes("granite") ? [28, 60]
+      : [30, 70];
+    const counterHours = keepingTop ? 0.15 : full ? 0.7 : 0.45;
+    notes.push(`Cabinet, counter, and backsplash runs are about ${Math.round(linearFt)} linear ft from the footprint, not a measured layout.`);
+    addPriced(items, { group: "Materials", name: "Cabinets", qty: linearFt, unit: "linear ft", unitLow: cabinetRate[0], unitHigh: cabinetRate[1], budget, detail: "Cabinet boxes and doors only. Install is listed under labor." });
+    addPriced(items, { group: "Materials", name: "Countertop", qty: linearFt, unit: "linear ft", unitLow: counterRate[0], unitHigh: counterRate[1], budget, detail: "Slab or surface material for the cabinet run." });
+    addPriced(items, { group: "Materials", name: "Backsplash", qty: splashSqft, unit: "sq ft", unitLow: full ? 14 : 8, unitHigh: full ? 32 : 18, budget, detail: "About 18 inches of backsplash over the counter run." });
+    addPriced(items, { group: "Materials", name: "Flooring", qty: sqft, unit: "sq ft", unitLow: full ? 5 : 3, unitHigh: full ? 12 : 7, budget, detail: "Floor area from the size you picked." });
+    addPriced(items, { group: "Materials", name: "Sink and faucet", qty: 1, unit: "each", unitLow: full ? 220 : 120, unitHigh: full ? 750 : 400, budget, detail: "One sink and one faucet." });
+    addPriced(items, { group: "Materials", name: "Appliances allowance", qty: 1, unit: "each", unitLow: full ? 1500 : 0, unitHigh: full ? 5500 : 900, budget, detail: full ? "Range, dishwasher, and refrigerator allowance." : "Small appliance updates only." });
+    addPriced(items, { group: "Labor", name: "Demolition", qty: sqft / (full ? 7 : 16), unit: "hours", unitLow: 40, unitHigh: 75, budget, detail: "Haul-off and prep before the new work." });
+    addPriced(items, { group: "Labor", name: "Cabinet install", qty: linearFt * cabinetHours, unit: "hours", unitLow: 60, unitHigh: 110, budget, detail: keepingCabs ? "Adjust and rehang the cabinets you are keeping." : refacing ? "Reface the existing cabinet boxes." : "Set the new cabinet run." });
+    addPriced(items, { group: "Labor", name: "Countertop install", qty: linearFt * counterHours, unit: "hours", unitLow: 60, unitHigh: 110, budget, detail: keepingTop ? "Reset the counter you are keeping." : "Template, cut, and set the new counter." });
+    addPriced(items, { group: "Labor", name: "Backsplash install", qty: splashSqft / 8, unit: "hours", unitLow: 60, unitHigh: 110, budget, detail: "Set the backsplash tile." });
+    addPriced(items, { group: "Labor", name: "Floor install", qty: sqft / (full ? 7 : 12), unit: "hours", unitLow: 60, unitHigh: 110, budget, detail: "Install the new floor." });
+    addPriced(items, { group: "Labor", name: "Plumber", qty: full ? 10 : 5, unit: "hours", unitLow: 85, unitHigh: 150, budget, detail: "Hook up the sink and faucet." });
+  } else if (room === "home") {
+    const outdoor = /outdoor|patio|balcony/i.test(answers.roomType || "");
+    const wallSqft = Math.round(2 * (length + width) * height * (outdoor ? 0.25 : 0.65));
+    const feature = String(answers.feature || "Key feature");
+    const featureRate = homeFeatureRate(feature);
+    notes.push(`${answers.roomType || "This room"} is priced from the size and feature you picked, not from a photo.`);
+    addPriced(items, {
+      group: "Materials",
+      name: outdoor ? "Outdoor flooring" : "Flooring",
+      qty: sqft,
+      unit: "sq ft",
+      unitLow: outdoor ? 8 : 4,
+      unitHigh: outdoor ? 22 : 14,
+      budget,
+      detail: "Floor area from the size you picked.",
+    });
+    addPriced(items, {
+      group: "Materials",
+      name: outdoor ? "Finish and seal" : "Paint",
+      qty: wallSqft,
+      unit: "sq ft",
+      unitLow: outdoor ? 1 : 1,
+      unitHigh: outdoor ? 3 : 3,
+      budget,
+      detail: outdoor ? "Rails, posts, and exposed surfaces." : "Wall area estimated from the footprint and ceiling.",
+    });
+    addPriced(items, {
+      group: "Materials",
+      name: feature,
+      qty: 1,
+      unit: "each",
+      unitLow: featureRate[0],
+      unitHigh: featureRate[1],
+      budget,
+      detail: "The key feature you selected, before install.",
+    });
+    addPriced(items, {
+      group: "Materials",
+      name: outdoor ? "Outdoor lighting" : "Lighting",
+      qty: 1,
+      unit: "each",
+      unitLow: outdoor ? 150 : 180,
+      unitHigh: outdoor ? 900 : 1200,
+      budget,
+      detail: "A lighting allowance for this room.",
+    });
+    addPriced(items, { group: "Labor", name: outdoor ? "Site prep" : "Prep and paint", qty: wallSqft / 40, unit: "hours", unitLow: 40, unitHigh: 75, budget, detail: outdoor ? "Clean and prepare the outdoor surfaces." : "Prep and paint the walls." });
+    addPriced(items, { group: "Labor", name: "Floor install", qty: sqft / (outdoor ? 8 : 10), unit: "hours", unitLow: 45, unitHigh: 90, budget, detail: "Install the new floor." });
+    addPriced(items, { group: "Labor", name: "Feature install", qty: featureRate[0] > 1500 ? 16 : 8, unit: "hours", unitLow: 50, unitHigh: 110, budget, detail: `Set ${feature}.` });
   } else {
-    const wallFactor = height > 9 ? 1.15 : 1;
-    const tileArea = sqft * (scope === "full" ? 2.2 : 1) * wallFactor;
-    const demo = scope === "full" ? [8 * sqft, 15 * sqft] : [3 * sqft, 6 * sqft];
-    const tileRate = scope === "full" ? [12, 28] : [6, 14];
-    const plumbing = scope === "full" ? [1200, 3500] : [300, 800];
-    const vanity = scope === "full" ? [800, 2800] : [350, 1100];
-    const fixtures = scope === "full" ? [600, 2200] : [200, 700];
     const wetAnswer = String(answers.wet || "").toLowerCase();
+    const skipWet = wetAnswer.includes("none") || wetAnswer.includes("no tub");
+    const wallFactor = height > 9 ? 1.15 : 1;
+    const wallSqft = sqft * (skipWet ? 0.35 : full ? 1.2 : 0.4) * wallFactor;
     const keeping = wetAnswer.includes("keep");
-    const wet = scope === "refresh" && keeping ? [150, 500]
-      : scope === "refresh" ? [900, 2500]
-      : keeping ? [700, 2200]
-      : [1800, 6000];
-    const wetName = wetAnswer.includes("walk-in") || (wetAnswer.includes("shower") && !wetAnswer.includes("tub and"))
-      ? "Walk-in shower"
-      : wetAnswer.includes("tub") ? "Bathtub" : "Shower or tub";
-    addLine(items, "Demolition and prep", demo[0], demo[1], budget);
-    addLine(items, "Plumbing allowance", plumbing[0], plumbing[1], budget);
-    addLine(items, "Tile", tileRate[0] * tileArea, tileRate[1] * tileArea, budget);
-    addLine(items, "Vanity", vanity[0], vanity[1], budget);
-    addLine(items, wetName, wet[0], wet[1], budget);
-    addLine(items, "Fixtures", fixtures[0], fixtures[1], budget);
+    const shower = wetAnswer.includes("walk-in") || (wetAnswer.includes("shower") && !wetAnswer.includes("tub and"));
+    const wetName = shower ? "Walk-in shower" : wetAnswer.includes("tub") ? "Bathtub" : "Shower or tub";
+    const wetRate = full && keeping ? [250, 1100]
+      : full && shower ? [1400, 5200]
+      : full ? [1100, 4200]
+      : keeping ? [80, 280]
+      : [500, 1600];
+    const plumberHours = full && keeping ? 6 : full ? 18 : keeping ? 3 : 8;
+    notes.push(`Wall tile is about ${Math.round(wallSqft)} sq ft, from the floor size and a ${height} ft ceiling, not a measured wall.`);
+    addPriced(items, { group: "Materials", name: "Floor tile", qty: sqft, unit: "sq ft", unitLow: full ? 8 : 4, unitHigh: full ? 18 : 10, budget, detail: "Tile for the floor only." });
+    addPriced(items, { group: "Materials", name: "Wall tile", qty: wallSqft, unit: "sq ft", unitLow: full ? 9 : 5, unitHigh: full ? 24 : 12, budget, detail: "Tile for the wet walls." });
+    addPriced(items, { group: "Materials", name: "Vanity", qty: 1, unit: "each", unitLow: full ? 700 : 250, unitHigh: full ? 2800 : 900, budget, detail: "Vanity cabinet and top, before install." });
+    addPriced(items, { group: "Materials", name: "Faucet and mirror", qty: 1, unit: "each", unitLow: full ? 400 : 100, unitHigh: full ? 2000 : 450, budget, detail: "Faucet, mirror, and small fixture set." });
+    if (!skipWet) addPriced(items, { group: "Materials", name: wetName, qty: 1, unit: "each", unitLow: wetRate[0], unitHigh: wetRate[1], budget, detail: keeping ? "Parts to keep the fixture that is already there." : "The tub or shower unit itself." });
+    addPriced(items, { group: "Labor", name: "Demolition", qty: sqft / (full ? 5 : 12), unit: "hours", unitLow: 45, unitHigh: 85, budget, detail: "Remove the finishes that are being replaced." });
+    addPriced(items, { group: "Labor", name: "Tile setter", qty: (sqft + wallSqft) / (full ? 4.5 : 10), unit: "hours", unitLow: 70, unitHigh: 150, budget, detail: "Set the floor and wall tile." });
+    addPriced(items, { group: "Labor", name: "Plumber", qty: skipWet ? 4 : plumberHours, unit: "hours", unitLow: 95, unitHigh: 170, budget, detail: skipWet ? "Connect the vanity faucet only." : keeping ? "Reconnect the fixture you are keeping." : "Set and connect the new tub or shower." });
+    addPriced(items, { group: "Labor", name: "Vanity install", qty: full ? 8 : 4, unit: "hours", unitLow: 60, unitHigh: 110, budget, detail: "Set the vanity, faucet, and mirror." });
   }
 
-  const laborPct = scope === "refresh" ? [0.3, 0.4] : [0.35, 0.45];
-  const subtotalLow = items.reduce((sum, item) => sum + item.low, 0);
-  const subtotalHigh = items.reduce((sum, item) => sum + item.high, 0);
-  items.push({
-    name: "Labor",
-    low: money(subtotalLow * laborPct[0]),
-    high: money(Math.max(subtotalHigh * laborPct[1], subtotalLow * laborPct[0])),
-  });
-  const totalLow = items.reduce((sum, item) => sum + item.low, 0);
-  const totalHigh = items.reduce((sum, item) => sum + item.high, 0);
+  const materials = items.filter((item) => item.group === "Materials");
+  const labor = items.filter((item) => item.group === "Labor");
+  const materialLow = sumItems(materials, "low");
+  const materialHigh = sumItems(materials, "high");
+  const laborLow = sumItems(labor, "low");
+  const laborHigh = sumItems(labor, "high");
+  const totalLow = materialLow + laborLow;
+  const totalHigh = materialHigh + laborHigh;
   return {
     room, scope, sqft, length, width, height, budget, items,
+    materialLow, materialHigh, laborLow, laborHigh,
     totalLow, totalHigh, notes,
     budgetNote: totalLow > budget * 1.15
       ? "This scope prices above the budget you picked. Raise the budget below, or go back and choose a lighter scope."
       : "",
     disclaimer: "Planning range in USD, not a contractor quote. The size is a typical room size, not a tape measurement. Tax and country pricing are not included.",
   };
+}
+
+function wetChoice(roomType, feature) {
+  const text = String(feature || "").toLowerCase();
+  if (/powder|half/i.test(roomType)) return "none";
+  if (text.includes("tub") && text.includes("shower")) return "Tub and shower";
+  if (text.includes("tub")) return "Bathtub";
+  if (text.includes("shower")) return "Walk-in shower";
+  return "Walk-in shower";
+}
+
+function counterChoice(feature, palette) {
+  const text = `${feature} ${palette}`.toLowerCase();
+  if (text.includes("marble")) return "Marble";
+  if (text.includes("butcher")) return "Butcher block";
+  if (text.includes("granite") || text.includes("stone")) return "Granite";
+  return "Quartz";
+}
+
+export function manualEstimate({ category, roomType, length, width, height, feature, palette, budget }) {
+  const scope = "Full replacement";
+  if (category === "bath") {
+    const tile = /tile|marble|stone/i.test(`${feature} ${palette}`) ? "New wall and floor tile" : "New floor tile";
+    return buildEstimate("bathroom", length, width, height, { scope, wet: wetChoice(roomType, feature), tile, roomType }, budget);
+  }
+  if (/kitchen/i.test(roomType)) {
+    return buildEstimate("kitchen", length, width, height, {
+      scope,
+      cabinets: "Replace them",
+      countertop: counterChoice(feature, palette),
+      roomType,
+    }, budget);
+  }
+  return buildEstimate("home", length, width, height, { scope, feature, roomType }, budget);
 }
 
 export function describeBudget(budget) {
@@ -258,9 +391,15 @@ export function normalizeVision(data = {}) {
   const [widthLow, widthHigh] = pair(num(data.width_low_ft, 40), num(data.width_high_ft, 40));
   const [heightLow, heightHigh] = pair(num(data.height_low_ft, 20), num(data.height_high_ft, 20));
   const fixtures = Array.isArray(data.fixtures) ? data.fixtures.map(String).filter(Boolean).slice(0, 12) : [];
+  const source = data.visible && typeof data.visible === "object" ? data.visible : {};
+  const visible = {};
+  for (const key of ["tub", "shower", "vanity", "tile", "cabinets", "countertop", "appliances"]) {
+    if (typeof source[key] === "boolean") visible[key] = source[key];
+  }
   return {
     room_type: room,
     fixtures,
+    visible,
     condition: String(data.condition || "").slice(0, 280),
     length_ft: num(data.length_ft, 40),
     width_ft: num(data.width_ft, 40),
@@ -325,33 +464,102 @@ export function summaryText(vision) {
   return opening + fixtures + condition + size + notes;
 }
 
-export function buildQuestions(vision, room) {
-  const fixtures = (vision.fixtures || []).map((name) => name.toLowerCase());
-  const feature = room === "kitchen"
-    ? { id: "cabinets", prompt: "What should happen to the cabinets?", options: ["Keep them", "Reface them", "Replace them"] }
-    : {
+function fixtureText(vision) {
+  return (vision.fixtures || []).map((name) => name.toLowerCase());
+}
+
+function seen(vision, key, words) {
+  if (typeof vision.visible?.[key] === "boolean") return vision.visible[key];
+  return fixtureText(vision).some((name) => words.some((word) => name.includes(word)));
+}
+
+function wetQuestion(vision) {
+  const tub = seen(vision, "tub", ["tub"]);
+  const shower = seen(vision, "shower", ["shower"]);
+  if (tub && shower) {
+    return {
       id: "wet",
-      prompt: fixtures.some((name) => name.includes("tub"))
-        ? "I see a tub. Keep it, or switch to a walk-in shower?"
-        : fixtures.some((name) => name.includes("shower"))
-          ? "I see a shower. Keep that layout, or change it?"
-          : "What should happen to the tub or shower?",
-      options: ["Keep the tub", "Walk-in shower", "Keep the shower", "Tub and shower"],
+      prompt: "I see a tub and a shower. What should happen to them?",
+      options: ["Keep the tub", "Keep the shower", "Walk-in shower", "Tub and shower"],
     };
-  const material = room === "kitchen"
-    ? { id: "countertop", prompt: "What countertop do you want?", options: ["Keep current", "Quartz", "Granite", "Butcher block", "Marble"] }
-    : { id: "tile", prompt: "What tile work do you want?", options: ["Keep most tile", "New floor tile", "New wall and floor tile"] };
+  }
+  if (tub) {
+    return {
+      id: "wet",
+      prompt: "I see a tub, not a shower. Keep the tub, or switch to a walk-in shower?",
+      options: ["Keep the tub", "Walk-in shower"],
+    };
+  }
+  if (shower) {
+    return {
+      id: "wet",
+      prompt: "I see a shower, not a tub. Keep that shower, or change the layout?",
+      options: ["Keep the shower", "Walk-in shower", "Tub and shower"],
+    };
+  }
+  return {
+    id: "wet",
+    prompt: "I don't see a tub or a shower in the photo. What should this bathroom have?",
+    options: ["Walk-in shower", "Bathtub", "Tub and shower"],
+  };
+}
+
+function kitchenQuestions(vision) {
+  const cabinets = seen(vision, "cabinets", ["cabinet"]);
+  const counter = seen(vision, "countertop", ["counter", "island"]);
+  return [
+    {
+      id: "cabinets",
+      prompt: cabinets
+        ? "I can see cabinets. Keep them, reface them, or replace them?"
+        : "I don't see cabinets in the photo. Add new ones, or keep this plan light?",
+      options: cabinets ? ["Keep them", "Reface them", "Replace them"] : ["Replace them", "Keep them"],
+    },
+    {
+      id: "countertop",
+      prompt: counter
+        ? "I can see a countertop. Keep it, or pick a new material?"
+        : "I don't see a counter to keep. What countertop do you want?",
+      options: counter
+        ? ["Keep current", "Quartz", "Granite", "Butcher block", "Marble"]
+        : ["Quartz", "Granite", "Butcher block", "Marble"],
+    },
+  ];
+}
+
+function tileQuestion(vision) {
+  const tile = seen(vision, "tile", ["tile", "subway"]);
+  return {
+    id: "tile",
+    prompt: tile
+      ? "I can see tile. Keep most of it, or replace it?"
+      : "I don't see tile to keep. What tile work do you want?",
+    options: tile
+      ? ["Keep most tile", "New floor tile", "New wall and floor tile"]
+      : ["New floor tile", "New wall and floor tile"],
+  };
+}
+
+export function buildQuestions(vision, room) {
+  const names = (vision.fixtures || []).slice(0, 6);
+  const seenLine = names.length ? `I can see ${names.join(", ")}. ` : "";
   const questions = [];
   if (vision.room_type !== "bathroom" && vision.room_type !== "kitchen") {
     questions.push({ id: "room", prompt: "Is this room a bathroom or a kitchen?", options: ["Bathroom", "Kitchen"] });
   }
+  const condition = vision.condition ? `${vision.condition} ` : "";
   questions.push(
-    { id: "scope", prompt: "Is this a light refresh, or a full replacement?", options: ["Light refresh", "Full replacement"] },
-    feature,
+    { id: "scope", prompt: `${condition}Is this a light refresh, or a full replacement?`, options: ["Light refresh", "Full replacement"] },
+    ...(room === "kitchen" ? kitchenQuestions(vision) : [wetQuestion(vision)]),
     { id: "style", prompt: room === "kitchen" ? "What kitchen style do you want?" : "What bathroom style do you want?", options: room === "kitchen" ? KITCHEN_STYLES : BATH_STYLES },
-    material,
+    ...(room === "kitchen" ? [] : [tileQuestion(vision)]),
     { id: "budget", prompt: "What budget should the planning estimate use?", options: BUDGET_OPTIONS },
-    { id: "must_keep", prompt: "What must stay the same? Type it, or choose Nothing specific.", options: ["Nothing specific"], freeText: true },
+    {
+      id: "must_keep",
+      prompt: `${seenLine}What must stay the same? Type it, or choose Nothing specific.`,
+      options: ["Nothing specific"],
+      freeText: true,
+    },
   );
   return questions;
 }
