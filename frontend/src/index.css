@@ -308,6 +308,30 @@ img { max-width: 100%; }
 .compare em.after { right: 14px; }
 .compare em.before-label { left: 14px; }
 
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.88);
+}
+.lightbox-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.lightbox img {
+  width: auto;
+  height: auto;
+  max-width: min(1100px, 100%);
+  max-height: calc(100vh - 110px);
+  object-fit: contain;
+  border-radius: 16px;
+  background: #0f172a;
+}
+.btn.ghost.light { color: #fff; border-color: rgba(255, 255, 255, 0.45); background: transparent; }
+
 .quote {
   margin-top: 22px;
   border: 1px solid var(--line);

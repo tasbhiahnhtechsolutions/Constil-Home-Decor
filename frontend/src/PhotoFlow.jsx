@@ -44,6 +44,7 @@ export default function PhotoFlow({ onPhotoCount }) {
   const [error, setError] = useState("");
   const [hot, setHot] = useState(false);
   const [split, setSplit] = useState(58);
+  const [fullView, setFullView] = useState("");
 
   async function readFiles(fileList) {
     const files = [...fileList].filter((file) => file.type.startsWith("image/")).slice(0, 3);
@@ -62,6 +63,7 @@ export default function PhotoFlow({ onPhotoCount }) {
     setEstimate(null);
     setImageUrl("");
     setImageBudget(null);
+    setFullView("");
     setError("");
     onPhotoCount?.(nextPhotos.length);
   }
@@ -281,13 +283,29 @@ export default function PhotoFlow({ onPhotoCount }) {
           {(sizeChanged || budgetChanged) && !busy.startsWith("Renovating") && <p className="warn">The size or budget changed. Update the design so the picture matches the estimate.</p>}
           {busy.startsWith("Renovating") && <Generating />}
           {imageUrl && !busy.startsWith("Renovating") && (
-            <div className="compare" style={{ "--pos": `${split}%` }}>
-              <img src={imageUrl} alt="Remodeled room" />
-              <img className="before" src={photos[0]?.url} alt="" />
-              <em className="before-label">Before</em>
-              <em className="after">After</em>
-              <input aria-label="Compare before and after" type="range" min="4" max="96" value={split} onChange={(event) => setSplit(event.target.value)} />
-            </div>
+            <>
+              <div className="compare" style={{ "--pos": `${split}%` }}>
+                <img src={imageUrl} alt="Remodeled room" />
+                <img className="before" src={photos[0]?.url} alt="" />
+                <em className="before-label">Before</em>
+                <em className="after">After</em>
+                <input aria-label="Compare before and after" type="range" min="4" max="96" value={split} onChange={(event) => setSplit(event.target.value)} />
+              </div>
+              <button type="button" className="btn ghost" style={{ marginTop: 10 }} onClick={() => setFullView("after")}>View full image</button>
+              {fullView && (
+                <Lightbox
+                  src={fullView === "before" ? photos[0]?.url : imageUrl}
+                  alt={fullView === "before" ? "Original room" : "Remodeled room"}
+                  onClose={() => setFullView("")}
+                  extra={(
+                    <>
+                      <button type="button" className={fullView === "before" ? "chip on" : "chip"} onClick={() => setFullView("before")}>Before</button>
+                      <button type="button" className={fullView === "after" ? "chip on" : "chip"} onClick={() => setFullView("after")}>After</button>
+                    </>
+                  )}
+                />
+              )}
+            </>
           )}
           {estimate && (
             <Estimate
@@ -299,6 +317,25 @@ export default function PhotoFlow({ onPhotoCount }) {
         </div>
       )}
     </section>
+  );
+}
+
+export function Lightbox({ src, alt, onClose, extra }) {
+  useEffect(() => {
+    function onKey(event) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="lightbox" role="dialog" aria-modal="true" aria-label={alt || "Full image"} onClick={onClose}>
+      <div className="lightbox-bar" onClick={(event) => event.stopPropagation()}>
+        {extra}
+        <button type="button" className="btn ghost light" onClick={onClose}>Close</button>
+      </div>
+      <img src={src} alt={alt || ""} onClick={(event) => event.stopPropagation()} />
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { callRemodel } from "./api";
-import { Estimate, Generating } from "./PhotoFlow";
+import { Estimate, Generating, Lightbox } from "./PhotoFlow";
 import { BATH_PRESETS, BATH_ROOMS, HOME_PRESETS, HOME_ROOMS, ROOM_FORM_CHOICES, manualEstimate, manualPrompt, parseBudget } from "./logic";
 
 const MANUAL_BUDGETS = ["Under $1,000", "$1,000 - $5,000", "$5,000 - $10,000", "$10,000 - $20,000", "$20,000+"];
@@ -30,6 +30,7 @@ export default function ManualForm() {
   const [customBudget, setCustomBudget] = useState(5000);
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [fullView, setFullView] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const requestId = useRef(0);
@@ -77,6 +78,7 @@ export default function ManualForm() {
     setCustomBudget(5000);
     setNotes("");
     setImageUrl("");
+    setFullView(false);
     setError("");
     setBusy(false);
   }
@@ -177,7 +179,13 @@ export default function ManualForm() {
           </button>
           {busy && <Generating />}
           {error && <p className="error">{error}</p>}
-          {imageUrl && !busy && <img src={imageUrl} alt="Generated design" style={{ marginTop: 16, borderRadius: 24 }} />}
+          {imageUrl && !busy && (
+            <>
+              <img src={imageUrl} alt="Generated design" style={{ marginTop: 16, borderRadius: 24 }} />
+              <button type="button" className="btn ghost" style={{ marginTop: 10 }} onClick={() => setFullView(true)}>View full image</button>
+              {fullView && <Lightbox src={imageUrl} alt="Generated design" onClose={() => setFullView(false)} />}
+            </>
+          )}
         </div>
         <aside className="mood">
           <p className="kicker">Your brief</p>
